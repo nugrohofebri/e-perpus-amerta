@@ -1,0 +1,130 @@
+# 🚀 Deploy E-Perpus ke Vercel
+
+## Mengapa Vercel?
+- ✅ **HTTPS otomatis** → kamera HP langsung bisa diakses tanpa konfigurasi tambahan
+- ✅ **Update otomatis** → cukup `git push`, website langsung diperbarui dalam ~1 menit
+- ✅ **Gratis** untuk proyek personal/sekolah
+
+---
+
+## Langkah 1 — Upload Kode ke GitHub
+
+> [!IMPORTANT]
+> Ini hanya dilakukan **satu kali** saat pertama kali setup.
+
+### 1a. Buat repository di GitHub
+1. Buka [github.com](https://github.com) → Login
+2. Klik tombol **"New"** (tanda `+` di kanan atas)
+3. Isi nama repo: `e-perpus-amerta`
+4. Pilih **Private** (agar kode tidak publik)
+5. Klik **Create repository**
+
+### 1b. Upload kode dari komputer
+Jalankan perintah ini satu per satu di terminal (folder `c:\e-perpus`):
+
+```powershell
+# Inisialisasi git (jika belum)
+git init
+
+# Buat file .gitignore agar file rahasia tidak ikut terupload
+# (lihat Langkah 1c di bawah)
+
+# Tambahkan semua file
+git add .
+
+# Commit pertama
+git commit -m "Initial commit: E-Perpus Amerta"
+
+# Hubungkan ke GitHub (ganti USERNAME dengan username GitHub Anda)
+git remote add origin https://github.com/USERNAME/e-perpus-amerta.git
+git branch -M main
+
+# Upload ke GitHub
+git push -u origin main
+```
+
+### 1c. Pastikan file `.gitignore` sudah benar
+Cek apakah ada file `.gitignore` di root proyek. Pastikan berisi minimal:
+
+```gitignore
+.env.local
+.env
+node_modules/
+.next/
+```
+
+---
+
+## Langkah 2 — Deploy ke Vercel
+
+> [!IMPORTANT]
+> Ini hanya dilakukan **satu kali**.
+
+1. Buka [vercel.com](https://vercel.com) → Login dengan akun GitHub
+2. Klik **"Add New Project"**
+3. Pilih repository `e-perpus-amerta` dari daftar
+4. Klik **"Import"**
+5. Biarkan semua setting default (Vercel otomatis mendeteksi Next.js)
+
+### 2a. Tambahkan Environment Variables di Vercel
+Sebelum klik **Deploy**, scroll ke bagian **"Environment Variables"** dan tambahkan:
+
+| Name | Value |
+|------|-------|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://zcaivpcubtimlahaswqt.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | *(isi dengan anon key dari Supabase Dashboard)* |
+| `NEXT_PUBLIC_SITE_URL` | *(akan diisi setelah deploy, lihat langkah 3)* |
+
+6. Klik **"Deploy"** → Tunggu ~2 menit
+7. Website Anda online! URL seperti: `https://e-perpus-amerta.vercel.app`
+
+---
+
+## Langkah 3 — Update SITE_URL di Vercel
+
+Setelah deployed:
+1. Copy URL website Anda dari Vercel (contoh: `https://e-perpus-amerta.vercel.app`)
+2. Buka **Vercel Dashboard** → Proyek → **Settings** → **Environment Variables**
+3. Edit `NEXT_PUBLIC_SITE_URL` → isi dengan URL tersebut
+4. Klik **Redeploy**
+
+---
+
+## ♻️ Cara Update Website (Setelah Setup Selesai)
+
+Setiap kali Anda mengubah kode, cukup jalankan **3 perintah** ini:
+
+```powershell
+git add .
+git commit -m "Deskripsi perubahan (contoh: fix tombol pinjam buku)"
+git push
+```
+
+**Vercel otomatis mendeteksi push dan langsung deploy ulang dalam ~1 menit!**
+
+> [!TIP]
+> Anda bisa memantau status deploy di [vercel.com/dashboard](https://vercel.com/dashboard) — ada notifikasi ketika selesai.
+
+---
+
+## 🔒 Keamanan: Update .env.local jangan di-push ke GitHub
+
+File `.env.local` berisi key rahasia dan **tidak boleh** diupload ke GitHub. Pastikan sudah ada di `.gitignore`.
+
+Jika suatu saat perlu mengganti Supabase key, ubah di **Vercel Dashboard → Settings → Environment Variables**, bukan di file kode.
+
+---
+
+## 📱 Bonus: Kamera HP Langsung Berfungsi!
+
+Setelah deploy ke Vercel, URL sudah otomatis **HTTPS** → kamera HP untuk scan QR code langsung bisa diakses tanpa setting tambahan apapun! Tidak perlu lagi `npm run dev:https-network`.
+
+---
+
+## Ringkasan Workflow Sehari-hari
+
+```
+Edit kode → git add . → git commit -m "..." → git push → Selesai! ✅
+```
+
+Vercel akan otomatis rebuild dan deploy dalam hitungan menit.
