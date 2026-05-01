@@ -22,7 +22,6 @@ export default async function LoginPage() {
             Gunakan email dan password yang diberikan oleh sekolah.
           </p>
         </div>
-        <p className="text-sm text-on-surface-variant">Siap deploy ke Vercel setelah env Supabase diisi.</p>
       </section>
       <section className="flex items-center justify-center bg-surface-container-low px-6 py-10">
         <LoginForm />
