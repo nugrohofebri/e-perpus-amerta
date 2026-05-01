@@ -45,9 +45,20 @@ export default async function StudentDashboardPage() {
             <p className="mb-2 text-xs font-extrabold uppercase tracking-[0.28em] text-primary">
               E-Perpus Sekolah
             </p>
-            <h1 className="font-headline text-4xl font-extrabold tracking-tight md:text-6xl">
-              Selamat datang di E-Perpus Amerta.
-            </h1>
+            {auth.user && auth.profile ? (
+              <>
+                <p className="font-headline text-lg font-bold text-on-surface-variant">
+                  Halo, {auth.profile.fullName.split(" ")[0]}! 👋
+                </p>
+                <h1 className="mt-1 font-headline text-4xl font-extrabold tracking-tight md:text-6xl">
+                  Selamat datang di E-Perpus Amerta.
+                </h1>
+              </>
+            ) : (
+              <h1 className="font-headline text-4xl font-extrabold tracking-tight md:text-6xl">
+                Selamat datang di E-Perpus Amerta.
+              </h1>
+            )}
             <p className="mt-4 max-w-2xl text-on-surface-variant">
               Jelajahi katalog, ajukan peminjaman, pantau batas pengembalian, dan kelola aktivitas baca dari satu tempat.
             </p>

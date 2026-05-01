@@ -45,7 +45,6 @@ export default async function ProfilePage() {
                 <h2 className="font-headline text-2xl font-extrabold leading-tight">
                   {profile?.fullName ?? "Pengguna"}
                 </h2>
-                <p className="mt-0.5 text-sm text-white/70">{profile?.grade ?? "-"}</p>
               </div>
             </div>
 
@@ -65,7 +64,6 @@ export default async function ProfilePage() {
             {[
               { icon: "person", label: "Nama Lengkap", value: profile?.fullName ?? "-" },
               { icon: "email", label: "Email", value: auth.user.email ?? "-" },
-              { icon: "school", label: "Kelas", value: profile?.grade ?? "-" },
               { icon: "badge", label: "ID Anggota", value: profile?.memberCode ?? "-" },
             ].map(({ icon, label, value }) => (
               <div key={label} className="flex items-center gap-4 rounded-2xl bg-slate-50 px-4 py-3">
