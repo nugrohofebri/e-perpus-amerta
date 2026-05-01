@@ -64,6 +64,7 @@ export default async function ProfilePage() {
             {[
               { icon: "person", label: "Nama Lengkap", value: profile?.fullName ?? "-" },
               { icon: "email", label: "Email", value: auth.user.email ?? "-" },
+              { icon: "event", label: "Mulai Bergabung", value: auth.user.created_at ? new Date(auth.user.created_at).toLocaleDateString("id-ID", { month: "long", year: "numeric" }) : "-" },
               { icon: "badge", label: "ID Anggota", value: profile?.memberCode ?? "-" },
             ].map(({ icon, label, value }) => (
               <div key={label} className="flex items-center gap-4 rounded-2xl bg-slate-50 px-4 py-3">
