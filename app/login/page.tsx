@@ -20,7 +20,6 @@ export default async function LoginPage() {
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-8 text-on-surface-variant">
             Gunakan email dan password yang diberikan oleh sekolah.
-            <code className="mx-1 rounded bg-surface-container px-1.5 py-0.5 text-sm">profiles</code>.
           </p>
         </div>
         <p className="text-sm text-on-surface-variant">Siap deploy ke Vercel setelah env Supabase diisi.</p>
