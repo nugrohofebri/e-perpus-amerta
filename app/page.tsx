@@ -42,9 +42,6 @@ export default async function StudentDashboardPage() {
       <section className="mb-12">
         <div className="flex flex-col gap-6">
           <div>
-            <p className="mb-2 text-xs font-extrabold uppercase tracking-[0.28em] text-primary">
-              E-Perpus Sekolah
-            </p>
             {auth.user && auth.profile ? (
               <>
                 <p className="font-headline text-lg font-bold text-on-surface-variant">
@@ -156,9 +153,9 @@ export default async function StudentDashboardPage() {
             </Link>
           ))}
           {otherPicks.length === 0 && (
-             <div className="flex h-full items-center justify-center rounded-[1.5rem] bg-surface-container-low p-6 text-center text-sm font-medium text-on-surface-variant">
-               Tidak ada rekomendasi buku lainnya saat ini.
-             </div>
+            <div className="flex h-full items-center justify-center rounded-[1.5rem] bg-surface-container-low p-6 text-center text-sm font-medium text-on-surface-variant">
+              Tidak ada rekomendasi buku lainnya saat ini.
+            </div>
           )}
         </div>
       </section>
