@@ -198,7 +198,11 @@ function SubmitButton() {
       disabled={pending}
       type="submit"
     >
-      <Icon name={pending ? "hourglass_empty" : "person_add"} />
+      {pending ? (
+        <Icon name="autorenew" className="animate-spin text-lg" />
+      ) : (
+        <Icon name="person_add" className="text-lg" />
+      )}
       {pending ? "Menyimpan..." : "Simpan"}
     </button>
   );

@@ -157,7 +157,11 @@ function SubmitButton({ isEdit }: { isEdit: boolean }) {
       disabled={pending}
       type="submit"
     >
-      <Icon name="save" />
+      {pending ? (
+        <Icon name="autorenew" className="animate-spin text-lg" />
+      ) : (
+        <Icon name="save" />
+      )}
       {pending ? "Menyimpan..." : isEdit ? "Perbarui Buku" : "Simpan Buku"}
     </button>
   );

@@ -20,6 +20,8 @@ export const metadata: Metadata = {
   description: "Website e-perpus berbasis Next.js, Supabase, dan Vercel."
 };
 
+import NextTopLoader from "nextjs-toploader";
+
 export default function RootLayout({
   children
 }: Readonly<{
@@ -28,6 +30,7 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body className={`${inter.variable} ${jakarta.variable} font-body antialiased`}>
+        <NextTopLoader color="#0ea5e9" showSpinner={false} />
         {children}
       </body>
     </html>
