@@ -58,8 +58,8 @@ export function AddMemberModal({ adminRole }: Props) {
                 </h2>
                 <p className="mt-1 text-sm text-on-surface-variant">
                   {adminRole === "admin"
-                    ? "Bisa menambah siswa, librarian, maupun admin lain."
-                    : "Hanya bisa menambah akun siswa."}
+                    ? "Bisa menambah siswa, guru, librarian, maupun admin lain."
+                    : "Bisa menambah akun siswa dan guru."}
                 </p>
               </div>
               <button

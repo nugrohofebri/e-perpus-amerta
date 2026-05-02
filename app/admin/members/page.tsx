@@ -12,10 +12,10 @@ export default async function MembersPage() {
   // Tentukan role admin yang sedang login
   const adminRole = (auth.profile?.role ?? "librarian") as "admin" | "librarian";
 
-  // Batasi visibilitas: Librarian HANYA bisa melihat akun "student" (Siswa/Guru)
+  // Batasi visibilitas: Librarian bisa melihat akun "student" dan "teacher"
   const visibleMembers = adminRole === "admin" 
     ? members 
-    : members.filter((m) => m.role === "student");
+    : members.filter((m) => m.role === "student" || m.role === "teacher");
 
   const activeCount = visibleMembers.filter((m) => m.status === "Aktif").length;
   const blockedCount = visibleMembers.filter((m) => m.status === "Diblokir").length;
