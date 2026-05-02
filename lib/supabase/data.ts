@@ -30,6 +30,8 @@ type DbBorrowing = {
   id: string;
   status: "pending" | "approved" | "borrowed" | "returned" | "rejected" | "overdue";
   due_at: string | null;
+  borrowed_at: string | null;
+  returned_at: string | null;
   created_at: string;
   book: {
     title: string;
@@ -99,7 +101,12 @@ function mapBorrowing(borrowing: DbBorrowing): Borrowing {
     title: borrowing.book?.title ?? "Buku tidak ditemukan",
     author: borrowing.book?.author ?? "-",
     status: finalStatus,
-    dueDate: dueAt ? dueAt.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "Belum ada tanggal",
+    dueDate: dueAt ? dueAt.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-",
+    borrowDate: borrowing.borrowed_at 
+      ? new Date(borrowing.borrowed_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) 
+      : new Date(borrowing.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
+    returnDate: borrowing.returned_at ? new Date(borrowing.returned_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-",
+
     createdAt: borrowing.created_at,
     coverUrl: borrowing.book?.cover_url,
     borrowerName: borrowing.member?.full_name,
@@ -235,15 +242,19 @@ export async function getBorrowings() {
 
   const query = supabase
     .from("borrowings")
-    .select("id, status, due_at, created_at, book:books(title, author, cover_url), member:profiles(full_name)")
+    .select("id, status, due_at, returned_at, created_at, book:books(title, author, cover_url), member:profiles(full_name)")
     .order("created_at", { ascending: false });
 
   const scopedQuery =
     auth.profile?.role === "admin" || auth.profile?.role === "librarian" || auth.profile?.role === "superadmin"
-      ? query.limit(20)
+      ? query.limit(500)
       : query.eq("member_id", auth.user.id);
 
   const { data, error } = await scopedQuery.returns<DbBorrowing[]>();
+
+  if (error) {
+    console.error("GET BORROWINGS ERROR:", error);
+  }
 
   if (error || !data) {
     return demoBorrowings;
