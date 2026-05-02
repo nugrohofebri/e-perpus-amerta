@@ -30,6 +30,8 @@ export type Borrowing = {
   author: string;
   status: "Aktif" | "Menunggu" | "Dikembalikan" | "Terlambat";
   dueDate: string;
+  borrowDate?: string;
+  returnDate?: string;
   createdAt?: string;
   coverUrl?: string | null;
   borrowerName?: string;
