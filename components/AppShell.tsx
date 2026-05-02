@@ -94,7 +94,10 @@ export async function AppShell({ children, mode = "student" }: AppShellProps) {
 
       {/* ── Bottom Nav General ── */}
       {auth.user && (
-        <nav className="glass nav-safe fixed bottom-0 left-0 z-50 flex w-full flex-col items-center border-t border-slate-200/50 shadow-[0_-8px_30px_-5px_rgba(0,0,0,0.1)]">
+        <nav
+          className="glass fixed bottom-0 left-0 z-50 flex w-full flex-col items-center border-t border-slate-200/50 shadow-[0_-8px_30px_-5px_rgba(0,0,0,0.1)]"
+          style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+        >
           <div className="flex w-full items-center justify-evenly px-2 py-2">
           {links.map((link) => {
             if (link.href === "/admin/scan") {
