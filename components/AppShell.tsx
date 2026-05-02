@@ -68,7 +68,7 @@ export async function AppShell({ children, mode = "student" }: AppShellProps) {
       {/* ── Header Atas Global (Menampilkan Logo Web) ── */}
       {auth.user && (
         <header className="glass sticky top-0 z-50 flex w-full items-center justify-between px-5 py-4 shadow-sm md:px-10">
-          <Link href="/" className="flex items-center gap-2 font-headline text-lg font-extrabold tracking-tight text-primary">
+          <Link href={mode === "admin" ? "/admin" : "/"} className="flex items-center gap-2 font-headline text-lg font-extrabold tracking-tight text-primary">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.png" alt="Logo" className="h-7 w-7 object-contain mix-blend-multiply" />
             E-Perpus Amerta

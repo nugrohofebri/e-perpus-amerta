@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { Icon } from "@/components/Icon";
-import { getCurrentProfile } from "@/lib/supabase/data";
+import { requireStudentAccess } from "@/lib/supabase/data";
 import { signOutAction } from "@/app/login/actions";
 import { ChangePasswordButton } from "./ChangePasswordForm";
 
 export default async function ProfilePage() {
-  const auth = await getCurrentProfile();
+  const auth = await requireStudentAccess();
 
   if (!auth.user) {
     redirect("/login");

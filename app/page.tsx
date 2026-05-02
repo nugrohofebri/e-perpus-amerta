@@ -3,10 +3,10 @@ import { AppShell } from "@/components/AppShell";
 import { BookCover } from "@/components/BookCover";
 import { Icon } from "@/components/Icon";
 import { StatusChip } from "@/components/StatusChip";
-import { getBooks, getBorrowings, getCurrentProfile } from "@/lib/supabase/data";
+import { getBooks, getBorrowings, requireStudentAccess } from "@/lib/supabase/data";
 
 export default async function StudentDashboardPage() {
-  const auth = await getCurrentProfile();
+  const auth = await requireStudentAccess();
   const books = await getBooks();
   const borrowings = await getBorrowings();
   const featured = books[0] ?? null;

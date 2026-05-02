@@ -2,10 +2,10 @@ import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { BookCover } from "@/components/BookCover";
 import { Icon } from "@/components/Icon";
-import { getSavedBooks, getCurrentProfile, isSupabaseConfigured } from "@/lib/supabase/data";
+import { getSavedBooks, requireStudentAccess, isSupabaseConfigured } from "@/lib/supabase/data";
 
 export default async function SavedBooksPage() {
-  const auth = await getCurrentProfile();
+  const auth = await requireStudentAccess();
   const showLoginHint = isSupabaseConfigured() && !auth.user;
   const savedBooks = await getSavedBooks();
 

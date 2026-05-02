@@ -6,7 +6,7 @@ import { Icon } from "@/components/Icon";
 import { BorrowInteractiveButton } from "@/components/BorrowInteractiveButton";
 import { ReviewForm } from "@/components/ReviewForm";
 import { SaveBookButton } from "@/components/SaveBookButton";
-import { getBookById, getBooks, getCurrentProfile, getReviews, hasUserBorrowedBook, isBookSaved } from "@/lib/supabase/data";
+import { getBookById, getBooks, requireStudentAccess, getReviews, hasUserBorrowedBook, isBookSaved } from "@/lib/supabase/data";
 
 type BookDetailPageProps = {
   params: {
@@ -17,7 +17,7 @@ type BookDetailPageProps = {
 export default async function BookDetailPage({ params }: BookDetailPageProps) {
   const book = await getBookById(params.id);
   const allBooks = await getBooks();
-  const auth = await getCurrentProfile();
+  const auth = await requireStudentAccess();
   const reviews = await getReviews(params.id);
 
   if (!book) {

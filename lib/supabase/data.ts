@@ -187,6 +187,26 @@ export async function requireAdminAccess() {
   return auth;
 }
 
+export async function requireStudentAccess() {
+  const auth = await getCurrentProfile();
+
+  if (auth.isDemo) {
+    return auth;
+  }
+
+  // If user is not logged in, we let them proceed since some public pages allow guests.
+  // Wait, if it's requireStudentAccess, maybe they need to be logged in? 
+  // Guest can see homepage and catalog, so we don't force login for everyone.
+  // But if they are logged in AND are staff, we kick them to /admin.
+  if (auth.profile) {
+    if (["admin", "librarian", "superadmin"].includes(auth.profile.role)) {
+      redirect("/admin");
+    }
+  }
+
+  return auth;
+}
+
 export async function getBooks() {
   const supabase = createClient();
 

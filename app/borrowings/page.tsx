@@ -3,11 +3,11 @@ import { BookCover } from "@/components/BookCover";
 import { Icon } from "@/components/Icon";
 import { ShowQRButton } from "@/components/ShowQRButton";
 import { ReturnQRButton } from "@/components/ReturnQRButton";
-import { getBorrowings, getCurrentProfile, isSupabaseConfigured } from "@/lib/supabase/data";
+import { getBorrowings, requireStudentAccess, isSupabaseConfigured } from "@/lib/supabase/data";
 import Link from "next/link";
 
 export default async function BorrowingsPage() {
-  const auth = await getCurrentProfile();
+  const auth = await requireStudentAccess();
   const borrowings = await getBorrowings();
   const showLoginHint = isSupabaseConfigured() && !auth.user;
 
