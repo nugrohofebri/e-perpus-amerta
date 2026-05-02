@@ -1,0 +1,36 @@
+import type { MetadataRoute } from "next";
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: "E-Perpus Amerta",
+    short_name: "E-Perpus",
+    description: "Sistem perpustakaan digital SMK Amerta — pinjam buku, kelola katalog, dan lacak peminjaman.",
+    start_url: "/",
+    display: "standalone",
+    orientation: "portrait",
+    background_color: "#f8fafc",
+    theme_color: "#0ea5e9",
+    categories: ["education", "books", "productivity"],
+    lang: "id",
+    icons: [
+      { src: "/icons/icon-72x72.png",   sizes: "72x72",   type: "image/png" },
+      { src: "/icons/icon-96x96.png",   sizes: "96x96",   type: "image/png" },
+      { src: "/icons/icon-128x128.png", sizes: "128x128", type: "image/png" },
+      { src: "/icons/icon-144x144.png", sizes: "144x144", type: "image/png" },
+      { src: "/icons/icon-152x152.png", sizes: "152x152", type: "image/png" },
+      { src: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
+      { src: "/icons/icon-384x384.png", sizes: "384x384", type: "image/png" },
+      { src: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+    ],
+    screenshots: [
+      {
+        src: "/icons/icon-512x512.png",
+        sizes: "512x512",
+        type: "image/png",
+        // @ts-ignore – form_factor is valid per spec but not yet in TS types
+        form_factor: "narrow",
+        label: "E-Perpus Amerta",
+      },
+    ],
+  };
+}
