@@ -5,7 +5,7 @@ import { AdminBorrowingsClient } from "./AdminBorrowingsClient";
 
 export default async function AdminBorrowingsPage() {
   await requireAdminAccess();
-  const borrowings = await getBorrowings();
+  const borrowings = await getBorrowings({ all: true });
 
   const totalBorrowings = borrowings.length;
   const activeCount = borrowings.filter((b) => b.status === "Aktif").length;

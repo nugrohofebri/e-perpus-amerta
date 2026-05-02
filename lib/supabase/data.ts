@@ -227,7 +227,7 @@ export async function getBookById(id: string) {
   return mapBook(data);
 }
 
-export async function getBorrowings() {
+export async function getBorrowings(options?: { all?: boolean }) {
   const supabase = createClient();
 
   if (!supabase) {
@@ -245,10 +245,11 @@ export async function getBorrowings() {
     .select("id, status, due_at, returned_at, created_at, book:books(title, author, cover_url), member:profiles(full_name)")
     .order("created_at", { ascending: false });
 
-  const scopedQuery =
-    auth.profile?.role === "admin" || auth.profile?.role === "librarian" || auth.profile?.role === "superadmin"
-      ? query.limit(500)
-      : query.eq("member_id", auth.user.id);
+  const isAdmin = auth.profile?.role === "admin" || auth.profile?.role === "librarian" || auth.profile?.role === "superadmin";
+
+  const scopedQuery = isAdmin && options?.all
+    ? query.limit(500)
+    : query.eq("member_id", auth.user.id);
 
   const { data, error } = await scopedQuery.returns<DbBorrowing[]>();
 
