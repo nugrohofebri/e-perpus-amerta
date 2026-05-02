@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { Icon } from "@/components/Icon";
+import { CoverUploader } from "@/components/CoverUploader";
 import { createBookAction, editBookAction, type BookFormState } from "@/app/admin/books/new/actions";
 
 const fields = [
@@ -16,39 +17,24 @@ export function AdminBookForm({ initialData }: { initialData?: any }) {
   const actionToUse = isEdit ? editBookAction.bind(null, initialData.id) : createBookAction;
   const [state, formAction] = useFormState<BookFormState, FormData>(actionToUse as any, {});
   
-  const [previewUrl, setPreviewUrl] = useState<string | null>(initialData?.coverUrl || null);
+  const [compressedFile, setCompressedFile] = useState<File | null>(null);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    if (compressedFile) {
+      formData.set("cover_image", compressedFile);
+    }
+    formAction(formData);
+  };
 
   return (
-    <form action={formAction} className="grid gap-8 lg:grid-cols-[220px_1fr]">
+    <form onSubmit={handleSubmit} className="grid gap-8 lg:grid-cols-[220px_1fr]">
       <section>
-        <label className="group relative flex aspect-[3/4] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-outline-variant/30 bg-surface-container-high text-center transition hover:border-primary hover:bg-surface-container">
-          {previewUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={previewUrl} alt="Cover Preview" className="h-full w-full object-cover" />
-          ) : (
-            <>
-              <Icon name="add_photo_alternate" className="mb-3 text-4xl text-outline group-hover:text-primary" />
-              <span className="text-xs font-bold uppercase tracking-widest text-outline group-hover:text-primary">
-                Upload Cover
-              </span>
-              <span className="mt-2 text-[10px] text-outline-variant">Max 2MB (Opsional)</span>
-            </>
-          )}
-          <input
-            type="file"
-            name="cover_image"
-            accept="image/jpeg, image/png, image/webp"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) setPreviewUrl(URL.createObjectURL(file));
-              else setPreviewUrl(null);
-            }}
-          />
-        </label>
-        <p className="mt-4 text-sm leading-6 text-on-surface-variant">
-          Buku akan langsung tersimpan ke Supabase. Jika tidak ada gambar, bisa dikosongkan.
-        </p>
+        <CoverUploader 
+          initialPreview={initialData?.coverUrl}
+          onFileProcessed={(file) => setCompressedFile(file)}
+        />
       </section>
 
       <section className="rounded-[2rem] bg-white p-7 shadow-sm">

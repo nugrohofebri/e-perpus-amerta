@@ -42,8 +42,8 @@ export async function deleteBookAction(bookId: string) {
     const urlParts = book.cover_url.split("/");
     const fileName = urlParts[urlParts.length - 1];
     if (fileName) {
-      // It's a fire-and-forget deletion, no need to block if it fails
-      supabase.storage.from("book-covers").remove([fileName]).catch(() => {});
+      // Await deletion to ensure it completes before serverless function exits
+      await supabase.storage.from("book-covers").remove([fileName]);
     }
   }
 

@@ -131,6 +131,14 @@ export async function editBookAction(bookId: string, _: BookFormState, formData:
     if (!uploadError) {
       const { data: publicUrlData } = supabase.storage.from('book-covers').getPublicUrl(filePath);
       coverUrl = publicUrlData.publicUrl;
+      
+      // Attempt to delete old cover
+      const { data: oldBook } = await supabase.from("books").select("cover_url").eq("id", bookId).single();
+      if (oldBook?.cover_url && oldBook.cover_url.includes("book-covers")) {
+        const parts = oldBook.cover_url.split("/");
+        const fName = parts[parts.length - 1];
+        if (fName) await supabase.storage.from('book-covers').remove([fName]);
+      }
     } else {
       return { error: `Gagal upload cover buku: ${uploadError.message}` };
     }
