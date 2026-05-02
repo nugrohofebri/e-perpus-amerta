@@ -5,17 +5,9 @@ import { BookCard } from "@/components/BookCard";
 import { Icon } from "@/components/Icon";
 import type { Book } from "@/lib/types";
 
-// Extracted the unique categories from our existing predefined ones
-const PREDEFINED_CATEGORIES = ["Buku Pelajaran", "Novel", "Komik", "Biografi"];
-
 export function CatalogClient({ books, savedBookIds = [], initialCategory = "", isLoggedIn = false }: { books: Book[], savedBookIds?: string[], initialCategory?: string, isLoggedIn?: boolean }) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState(initialCategory);
-
-  // Get all unique categories dynamically in case there are custom ones
-  const allCategories = Array.from(new Set(books.map((b) => b.category).filter(Boolean)));
-  // Merge predefined with custom categories
-  const categories = Array.from(new Set([...PREDEFINED_CATEGORIES, ...allCategories]));
 
   const filteredBooks = books.filter((book) => {
     const matchSearch =
@@ -55,11 +47,52 @@ export function CatalogClient({ books, savedBookIds = [], initialCategory = "", 
               onChange={(e) => setCategory(e.target.value)}
             >
               <option value="">Semua Kategori</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
+              <optgroup label="Fiksi">
+                <option value="Novel">Novel</option>
+                <option value="Cerpen">Cerpen</option>
+                <option value="Puisi">Puisi</option>
+              </optgroup>
+              <optgroup label="Hobi & Hiburan">
+                <option value="Komik">Komik</option>
+                <option value="Musik">Musik</option>
+                <option value="Olahraga">Olahraga</option>
+                <option value="Kerajinan Tangan">Kerajinan Tangan</option>
+              </optgroup>
+              <optgroup label="Tokoh">
+                <option value="Biografi">Biografi</option>
+                <option value="Otobiografi">Otobiografi</option>
+                <option value="Memoar">Memoar</option>
+              </optgroup>
+              <optgroup label="Sosial Politik">
+                <option value="Hukum">Hukum</option>
+                <option value="Politik">Politik</option>
+                <option value="Kewarganegaraan">Kewarganegaraan</option>
+                <option value="Ekonomi">Ekonomi</option>
+              </optgroup>
+              <optgroup label="Sains & Alam">
+                <option value="Lingkungan">Lingkungan</option>
+                <option value="Flora & Fauna">Flora & Fauna</option>
+                <option value="Antariksa">Antariksa</option>
+              </optgroup>
+              <optgroup label="Kesehatan">
+                <option value="Gizi">Gizi</option>
+                <option value="Penyakit">Penyakit</option>
+                <option value="Olahraga Kesehatan">Olahraga Kesehatan</option>
+              </optgroup>
+              <optgroup label="Religi">
+                <option value="Kitab Suci">Kitab Suci</option>
+                <option value="Sejarah Agama">Sejarah Agama</option>
+                <option value="Doa-doa">Doa-doa</option>
+              </optgroup>
+              <optgroup label="Referensi">
+                <option value="Kamus">Kamus</option>
+                <option value="Ensiklopedia">Ensiklopedia</option>
+                <option value="Atlas">Atlas</option>
+              </optgroup>
+              <optgroup label="Lainnya">
+                <option value="Buku Pelajaran">Buku Pelajaran</option>
+                <option value="Umum">Umum</option>
+              </optgroup>
             </select>
           </div>
         </div>
