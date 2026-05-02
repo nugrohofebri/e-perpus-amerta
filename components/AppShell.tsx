@@ -87,38 +87,40 @@ export async function AppShell({ children, mode = "student" }: AppShellProps) {
         </header>
       )}
 
-      <main className="mx-auto flex min-h-[85vh] w-full max-w-7xl flex-col px-5 py-8 pb-36 md:px-8 md:pt-10 md:pb-36">
+      <main className="mx-auto flex min-h-[85vh] w-full max-w-7xl flex-col px-5 py-8 pb-safe md:px-8 md:pt-10">
         <div className="flex-1">{children}</div>
         <Footer />
       </main>
 
       {/* ── Bottom Nav General ── */}
       {auth.user && (
-        <nav className="glass fixed bottom-0 left-0 z-50 flex w-full items-center justify-evenly border-t border-slate-200/50 px-2 py-2 shadow-[0_-8px_30px_-5px_rgba(0,0,0,0.1)]">
-        {links.map((link) => {
-          if (link.href === "/admin/scan") {
+        <nav className="glass nav-safe fixed bottom-0 left-0 z-50 flex w-full flex-col items-center border-t border-slate-200/50 shadow-[0_-8px_30px_-5px_rgba(0,0,0,0.1)]">
+          <div className="flex w-full items-center justify-evenly px-2 py-2">
+          {links.map((link) => {
+            if (link.href === "/admin/scan") {
+              return (
+                <div key={link.href} className="relative -top-5 flex justify-center">
+                  <Link
+                    href={link.href}
+                    className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary-container text-white shadow-lg shadow-primary/30 transition hover:scale-105 active:scale-95"
+                  >
+                    <Icon name={link.icon} className="text-2xl" />
+                  </Link>
+                </div>
+              );
+            }
             return (
-              <div key={link.href} className="relative -top-5 flex justify-center">
-                <Link
-                  href={link.href}
-                  className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary-container text-white shadow-lg shadow-primary/30 transition hover:scale-105 active:scale-95"
-                >
-                  <Icon name={link.icon} className="text-2xl" />
-                </Link>
-              </div>
+              <Link
+                key={link.href}
+                href={link.href}
+                className="flex w-16 flex-col items-center gap-1 rounded-2xl p-1 text-[10px] font-bold text-on-surface-variant hover:bg-white hover:text-primary active:bg-surface-container"
+              >
+                <Icon name={link.icon} className="text-[20px]" />
+                <span className="w-full truncate text-center">{link.label.split(" ")[0]}</span>
+              </Link>
             );
-          }
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="flex w-16 flex-col items-center gap-1 rounded-2xl p-1 text-[10px] font-bold text-on-surface-variant hover:bg-white hover:text-primary active:bg-surface-container"
-            >
-              <Icon name={link.icon} className="text-[20px]" />
-              <span className="w-full truncate text-center">{link.label.split(" ")[0]}</span>
-            </Link>
-          );
-        })}
+          })}
+          </div>
         </nav>
       )}
     </div>
