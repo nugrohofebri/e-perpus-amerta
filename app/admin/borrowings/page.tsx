@@ -1,8 +1,7 @@
 import { AppShell } from "@/components/AppShell";
 import { Icon } from "@/components/Icon";
-import { StatusChip } from "@/components/StatusChip";
 import { getBorrowings, requireAdminAccess } from "@/lib/supabase/data";
-import Link from "next/link";
+import { AdminBorrowingsClient } from "./AdminBorrowingsClient";
 
 export default async function AdminBorrowingsPage() {
   await requireAdminAccess();
@@ -47,70 +46,7 @@ export default async function AdminBorrowingsPage() {
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-[2rem] bg-white shadow-sm ring-1 ring-surface-container">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-surface-container bg-surface-container-low text-on-surface-variant">
-                <th className="whitespace-nowrap px-6 py-4 font-bold">Buku & Penulis</th>
-                <th className="whitespace-nowrap px-6 py-4 font-bold">Status</th>
-                <th className="whitespace-nowrap px-6 py-4 font-bold">Tenggat Waktu</th>
-                <th className="whitespace-nowrap px-6 py-4 font-bold text-center">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-surface-container">
-              {borrowings.map((borrow) => {
-                const isPending = borrow.status === "Menunggu";
-                const isActive = borrow.status === "Aktif";
-                const isOverdue = borrow.status === "Terlambat";
-                
-                let badgeColors = 'bg-slate-100 text-slate-600';
-                let dotColors = 'bg-slate-400';
-                
-                if (isActive) { badgeColors = 'bg-green-100 text-green-700'; dotColors = 'bg-green-500'; }
-                else if (isPending) { badgeColors = 'bg-amber-100 text-amber-700'; dotColors = 'bg-amber-500'; }
-                else if (isOverdue) { badgeColors = 'bg-red-100 text-red-700'; dotColors = 'bg-red-500'; }
-                
-                return (
-                  <tr key={borrow.id} className="transition hover:bg-surface-bright">
-                    <td className="px-6 py-4">
-                      <p className="font-bold text-on-surface line-clamp-1">{borrow.title}</p>
-                      <p className="text-xs text-on-surface-variant line-clamp-1">Oleh {borrow.author}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${badgeColors}`}>
-                        <span className={`h-1.5 w-1.5 rounded-full ${dotColors}`} />
-                        {borrow.status}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 font-medium text-on-surface-variant">
-                      {borrow.dueDate}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex justify-center">
-                        {isPending && (
-                          <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Verifikasi QR</span>
-                        )}
-                        {!isPending && (
-                          <span className="text-[11px] font-bold uppercase tracking-widest text-slate-300">-</span>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-              
-              {borrowings.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-on-surface-variant">
-                    Belum ada riwayat peminjaman sama sekali.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <AdminBorrowingsClient initialBorrowings={borrowings} />
     </AppShell>
   );
 }
