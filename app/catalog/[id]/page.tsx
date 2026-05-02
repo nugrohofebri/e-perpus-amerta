@@ -27,7 +27,7 @@ export default async function BookDetailPage({ params }: BookDetailPageProps) {
   const relatedBooks = allBooks.filter((b) => b.id !== book.id).slice(0, 4);
   const isAvailable = book.status === "available";
   const isLoggedIn = !!auth.user;
-  const isStudentOrGuest = !auth.profile?.role || auth.profile?.role === "student";
+  const isStudentTeacherOrGuest = !auth.profile?.role || auth.profile?.role === "student" || auth.profile?.role === "teacher";
 
   // Kalkulasi rata-rata rating
   const avgRating = reviews.length > 0
@@ -111,7 +111,7 @@ export default async function BookDetailPage({ params }: BookDetailPageProps) {
             </div>
           </div>
 
-          {isStudentOrGuest && (
+          {isStudentTeacherOrGuest && (
             <div className="flex flex-col gap-3 sm:flex-row">
               <BorrowInteractiveButton isLoggedIn={isLoggedIn} isAvailable={isAvailable} bookTitle={book.title} bookId={book.id} />
               {isLoggedIn && <SaveBookButton bookId={book.id} initialSaved={isSaved} />}
