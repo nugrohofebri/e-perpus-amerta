@@ -1,23 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { Icon } from "@/components/Icon";
 import { CoverUploader } from "@/components/CoverUploader";
 import { createBookAction, editBookAction, type BookFormState } from "@/app/admin/books/new/actions";
 
-const fields = [
-  ["title", "Judul Buku", "Masukkan judul buku"],
-  ["author", "Nama Penulis", "Contoh: Andrea Hirata"],
-  ["isbn", "ISBN", "978-0000000000"]
-] as const;
+function toTitleCase(str: string): string {
+  return str.replace(/\S+/g, (word) =>
+    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+  );
+}
 
 export function AdminBookForm({ initialData }: { initialData?: any }) {
   const isEdit = Boolean(initialData);
   const actionToUse = isEdit ? editBookAction.bind(null, initialData.id) : createBookAction;
   const [state, formAction] = useFormState<BookFormState, FormData>(actionToUse as any, {});
-  
+
   const [compressedFile, setCompressedFile] = useState<File | null>(null);
+  const [title, setTitle] = useState<string>(initialData?.title ?? "");
+  const [author, setAuthor] = useState<string>(initialData?.author ?? "");
+
+  const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const cursor = e.target.selectionStart;
+    const formatted = toTitleCase(e.target.value);
+    setTitle(formatted);
+    // Kembalikan posisi cursor agar tidak loncat ke ujung
+    requestAnimationFrame(() => {
+      e.target.setSelectionRange(cursor, cursor);
+    });
+  }, []);
+
+  const handleAuthorChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const cursor = e.target.selectionStart;
+    const formatted = toTitleCase(e.target.value);
+    setAuthor(formatted);
+    requestAnimationFrame(() => {
+      e.target.setSelectionRange(cursor, cursor);
+    });
+  }, []);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -39,18 +60,43 @@ export function AdminBookForm({ initialData }: { initialData?: any }) {
 
       <section className="rounded-[2rem] bg-white p-7 shadow-sm">
         <div className="grid gap-5 sm:grid-cols-2">
-          {fields.map(([name, label, placeholder]) => (
-            <label key={name} className={name === "title" ? "sm:col-span-2" : ""}>
-              <span className="ml-1 text-[11px] font-bold uppercase tracking-widest text-primary">{label}</span>
-              <input
-                defaultValue={initialData?.[name] ?? ""}
-                className="mt-2 w-full rounded-xl border-0 bg-surface-container-high px-4 py-3.5 font-medium focus:ring-2 focus:ring-primary/20"
-                name={name}
-                placeholder={placeholder}
-                type="text"
-              />
-            </label>
-          ))}
+          {/* Judul Buku — auto title case */}
+          <label className="sm:col-span-2">
+            <span className="ml-1 text-[11px] font-bold uppercase tracking-widest text-primary">Judul Buku</span>
+            <input
+              value={title}
+              onChange={handleTitleChange}
+              className="mt-2 w-full rounded-xl border-0 bg-surface-container-high px-4 py-3.5 font-medium focus:ring-2 focus:ring-primary/20"
+              name="title"
+              placeholder="Masukkan judul buku"
+              type="text"
+            />
+          </label>
+
+          {/* Nama Penulis — auto title case */}
+          <label>
+            <span className="ml-1 text-[11px] font-bold uppercase tracking-widest text-primary">Nama Penulis</span>
+            <input
+              value={author}
+              onChange={handleAuthorChange}
+              className="mt-2 w-full rounded-xl border-0 bg-surface-container-high px-4 py-3.5 font-medium focus:ring-2 focus:ring-primary/20"
+              name="author"
+              placeholder="Contoh: Andrea Hirata"
+              type="text"
+            />
+          </label>
+
+          {/* ISBN — uncontrolled */}
+          <label>
+            <span className="ml-1 text-[11px] font-bold uppercase tracking-widest text-primary">ISBN</span>
+            <input
+              defaultValue={initialData?.isbn ?? ""}
+              className="mt-2 w-full rounded-xl border-0 bg-surface-container-high px-4 py-3.5 font-medium focus:ring-2 focus:ring-primary/20"
+              name="isbn"
+              placeholder="978-0000000000"
+              type="text"
+            />
+          </label>
 
           <label>
             <span className="ml-1 text-[11px] font-bold uppercase tracking-widest text-primary">Kategori</span>
