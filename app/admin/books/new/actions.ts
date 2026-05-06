@@ -50,6 +50,18 @@ export async function createBookAction(_: BookFormState, formData: FormData): Pr
     return { error: "Hanya admin atau pustakawan yang boleh menambah buku." };
   }
 
+  // Cek apakah buku dengan judul dan penulis yang sama sudah ada
+  const { data: existingBook } = await supabase
+    .from("books")
+    .select("id")
+    .ilike("title", title)
+    .ilike("author", author)
+    .maybeSingle();
+
+  if (existingBook) {
+    return { error: "Buku dengan judul dan penulis yang sama sudah terdaftar. Silakan cari di katalog dan edit buku tersebut jika ingin menambah stok." };
+  }
+
   let coverUrl: string | null = null;
   if (coverImage && coverImage.size > 0 && coverImage.name !== "undefined") {
     // Buat nama file aman dengan timestamp
