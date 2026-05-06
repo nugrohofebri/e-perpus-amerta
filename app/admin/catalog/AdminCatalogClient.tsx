@@ -153,7 +153,7 @@ export function AdminCatalogClient({ books, totalCopies, borrowed }: { books: Bo
 
                   <div className="flex gap-2">
                     <Link
-                      href={`/catalog/${book.id}`}
+                      href={`/admin/catalog/${book.id}`}
                       className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-container text-primary transition hover:bg-primary hover:text-white"
                       title="Lihat detail"
                     >
