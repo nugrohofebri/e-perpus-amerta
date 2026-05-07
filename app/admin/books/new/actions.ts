@@ -101,7 +101,7 @@ export async function createBookAction(_: BookFormState, formData: FormData): Pr
   revalidatePath("/admin");
   revalidatePath("/admin/books/new");
 
-  redirect("/admin/catalog");
+  return { success: `Buku "${title}" karya ${author} berhasil ditambahkan ke katalog!` };
 }
 
 export async function editBookAction(bookId: string, _: BookFormState, formData: FormData): Promise<BookFormState> {
@@ -183,5 +183,5 @@ export async function editBookAction(bookId: string, _: BookFormState, formData:
   revalidatePath("/admin");
   revalidatePath("/admin/books/new");
 
-  redirect("/admin/catalog");
+  return { success: `Perubahan pada buku "${title}" berhasil disimpan!` };
 }

@@ -1,99 +1,149 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BookCover } from "@/components/BookCover";
 import { DeleteBookButton } from "@/components/DeleteBookButton";
 import { Icon } from "@/components/Icon";
 import { StatusChip } from "@/components/StatusChip";
+import { Pagination } from "@/components/Pagination";
 import type { Book } from "@/lib/types";
 
-// Extracted the unique categories from our existing predefined ones (from CatalogClient)
-const PREDEFINED_CATEGORIES = ["Buku Pelajaran", "Novel", "Komik", "Biografi"];
+const CATEGORIES = [
+  { group: "Fiksi", items: ["Novel", "Cerpen", "Puisi"] },
+  { group: "Hobi & Hiburan", items: ["Komik", "Musik", "Olahraga", "Kerajinan Tangan"] },
+  { group: "Tokoh", items: ["Biografi", "Otobiografi", "Memoar"] },
+  { group: "Sosial Politik", items: ["Hukum", "Politik", "Kewarganegaraan", "Ekonomi"] },
+  { group: "Sains & Alam", items: ["Lingkungan", "Flora & Fauna", "Antariksa"] },
+  { group: "Kesehatan", items: ["Gizi", "Penyakit", "Olahraga Kesehatan"] },
+  { group: "Religi", items: ["Kitab Suci", "Sejarah Agama", "Doa-doa"] },
+  { group: "Referensi", items: ["Kamus", "Ensiklopedia", "Atlas"] },
+  { group: "Lainnya", items: ["Buku Pelajaran", "Umum"] },
+];
 
-export function AdminCatalogClient({ books, totalCopies, borrowed }: { books: Book[], totalCopies: number, borrowed: number }) {
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+interface Props {
+  books: Book[];
+  total: number;
+  page: number;
+  totalPages: number;
+  search: string;
+  category: string;
+  statusFilter: string;
+  copiesFilter: string;
+  borrowed: number;
+  totalCopies: number;
+}
 
-  const allCategories = Array.from(new Set(books.map((b) => b.category).filter(Boolean)));
-  const categories = Array.from(new Set([...PREDEFINED_CATEGORIES, ...allCategories]));
+export function AdminCatalogClient({
+  books,
+  total,
+  page,
+  totalPages,
+  search,
+  category,
+  statusFilter,
+  copiesFilter,
+  borrowed,
+  totalCopies,
+}: Props) {
+  const router = useRouter();
 
-  const filteredBooks = books.filter((book) => {
-    const matchSearch =
-      book.title.toLowerCase().includes(search.toLowerCase()) ||
-      book.author.toLowerCase().includes(search.toLowerCase()) ||
-      book.category.toLowerCase().includes(search.toLowerCase());
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const data = new FormData(e.currentTarget);
+    const params = new URLSearchParams();
+    const s = data.get("search") as string;
+    const c = data.get("category") as string;
+    const st = data.get("status") as string;
+    const cp = data.get("copies") as string;
+    if (s) params.set("search", s);
+    if (c) params.set("category", c);
+    if (st) params.set("status", st);
+    if (cp) params.set("copies", cp);
+    params.set("page", "1");
+    router.push(`/admin/catalog?${params.toString()}`);
+  }
 
-    const matchCategory = category ? book.category === category || category === "Kategori" ? true : book.category === category : true;
-    
-    // Status translation (buku enum: available, borrowed, pending)
-    // Filter options UI: "Status", "Tersedia", "Dipinjam", "Antrian" (maybe)
-    let matchStatus = true;
-    if (statusFilter && statusFilter !== "Status" && statusFilter !== "Semua Status") {
-      if (statusFilter === "Tersedia" && book.status !== "available") matchStatus = false;
-      if (statusFilter === "Dipinjam" && book.status !== "borrowed") matchStatus = false;
-      if (statusFilter === "Antrian" && book.status !== "pending") matchStatus = false;
-    }
-
-    return matchSearch && matchCategory && matchStatus;
-  });
+  // Params untuk Pagination (tanpa page)
+  const paginationParams: Record<string, string> = {};
+  if (search) paginationParams.search = search;
+  if (category) paginationParams.category = category;
+  if (statusFilter) paginationParams.status = statusFilter;
+  if (copiesFilter) paginationParams.copies = copiesFilter;
 
   return (
     <>
-      <div className="mb-6 flex flex-col gap-3 rounded-[2rem] bg-white p-4 shadow-sm md:flex-row md:items-center">
+      {/* Search & Filter Form */}
+      <form
+        onSubmit={handleSubmit}
+        className="mb-6 flex flex-col gap-3 rounded-[2rem] bg-white p-4 shadow-sm md:flex-row md:items-center"
+      >
         <div className="relative flex-1">
           <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 text-outline" />
           <input
             className="w-full rounded-2xl border-0 bg-surface-container-high py-4 pl-12 pr-4 focus:ring-2 focus:ring-primary/20"
-            placeholder="Cari judul, penulis, kategori..."
+            placeholder="Cari judul, penulis... lalu tekan Enter atau klik Cari"
             type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            name="search"
+            defaultValue={search}
           />
         </div>
         <div className="flex gap-2">
           <select
+            name="category"
             className="rounded-2xl border-0 bg-surface-container px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-primary/20"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            defaultValue={category}
           >
             <option value="">Semua Kategori</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
+            {CATEGORIES.map(({ group, items }) => (
+              <optgroup key={group} label={group}>
+                {items.map((item) => (
+                  <option key={item} value={item}>{item}</option>
+                ))}
+              </optgroup>
             ))}
           </select>
           <select
+            name="status"
             className="rounded-2xl border-0 bg-surface-container px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-primary/20"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            defaultValue={statusFilter}
           >
             <option value="">Semua Status</option>
-            <option value="Tersedia">Tersedia</option>
-            <option value="Dipinjam">Dipinjam</option>
-            <option value="Antrian">Antrian</option>
+            <option value="available">Tersedia</option>
+            <option value="borrowed">Dipinjam</option>
           </select>
+          <select
+            name="copies"
+            className="rounded-2xl border-0 bg-surface-container px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-primary/20"
+            defaultValue={copiesFilter}
+          >
+            <option value="">Semua Stok</option>
+            <option value="0">0 eksemplar</option>
+            <option value="1">1 eksemplar</option>
+            <option value="2">2 eksemplar</option>
+            <option value="3">3 eksemplar</option>
+            <option value="4">4 eksemplar</option>
+            <option value="5">5 eksemplar</option>
+            <option value="5plus">5+ eksemplar</option>
+          </select>
+          <button
+            type="submit"
+            className="flex items-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-bold text-white transition hover:bg-primary/90"
+          >
+            <Icon name="search" className="text-[18px]" />
+            Cari
+          </button>
         </div>
-      </div>
+      </form>
 
-      {filteredBooks.length === 0 ? (
+      {/* Table */}
+      {books.length === 0 ? (
         <div className="rounded-[2rem] bg-white p-12 text-center shadow-sm">
           <Icon name="library_books" className="mb-4 text-6xl text-outline" />
           <h2 className="font-headline text-2xl font-extrabold">Buku tidak ditemukan</h2>
           <p className="mt-3 text-on-surface-variant">
-            {books.length === 0
-              ? "Mulai tambahkan koleksi buku perpustakaan sekolah."
-              : "Tidak ada buku yang cocok dengan pencarian atau filter Anda."}
+            Tidak ada buku yang cocok dengan filter Anda.
           </p>
-          {books.length === 0 && (
-            <Link
-              href="/admin/books/new"
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3 font-bold text-white"
-            >
-              <Icon name="add" />
-              Tambah Buku Pertama
-            </Link>
-          )}
         </div>
       ) : (
         <section className="overflow-hidden rounded-[2rem] bg-surface-container-low">
@@ -107,7 +157,7 @@ export function AdminCatalogClient({ books, totalCopies, borrowed }: { books: Bo
           </div>
 
           <div className="space-y-0.5">
-            {filteredBooks.map((book) => {
+            {books.map((book) => {
               const tone =
                 book.status === "available"
                   ? "success"
@@ -127,22 +177,20 @@ export function AdminCatalogClient({ books, totalCopies, borrowed }: { books: Bo
                     coverUrl={book.coverUrl}
                     className="h-16 w-12 shrink-0 overflow-hidden rounded-lg"
                   />
-
                   <div>
                     <p className="font-bold leading-tight">{book.title}</p>
                     <p className="mt-0.5 text-sm text-on-surface-variant">{book.author}</p>
-                    <p className="mt-1 text-xs text-outline">{book.grade}</p>
                   </div>
-
                   <p className="text-sm font-medium text-on-surface-variant">{book.category}</p>
-
-                  <div className="flex items-center gap-1">
-                    <span className="font-headline text-2xl font-extrabold text-primary">
-                      {book.copies}
-                    </span>
-                    <span className="text-xs text-outline">eks</span>
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1">
+                      <span className="font-headline text-2xl font-extrabold text-primary">
+                        {book.copies}
+                      </span>
+                      <span className="text-xs text-outline">/ {book.totalCopies ?? book.copies}</span>
+                    </div>
+                    <span className="text-[10px] text-outline">tersedia / total</span>
                   </div>
-
                   <StatusChip tone={tone}>
                     {book.status === "available"
                       ? "Tersedia"
@@ -150,7 +198,6 @@ export function AdminCatalogClient({ books, totalCopies, borrowed }: { books: Bo
                       ? "Antrian"
                       : "Dipinjam"}
                   </StatusChip>
-
                   <div className="flex gap-2">
                     <Link
                       href={`/admin/catalog/${book.id}`}
@@ -182,10 +229,15 @@ export function AdminCatalogClient({ books, totalCopies, borrowed }: { books: Bo
         </section>
       )}
 
+      {/* Pagination */}
+      <Pagination page={page} totalPages={totalPages} params={paginationParams} />
+
       <p className="mt-6 text-center text-sm text-on-surface-variant">
-        Menampilkan <strong>{filteredBooks.length}</strong> dari <strong>{books.length}</strong> judul buku ·{" "}
-        <strong>{totalCopies}</strong> total eksemplar ·{" "}
-        <strong>{borrowed}</strong> sedang dipinjam
+        Menampilkan <strong>{books.length}</strong> dari <strong>{total}</strong> judul buku ·{" "}
+        <strong>{totalCopies}</strong> total eksemplar · <strong>{borrowed}</strong> sedang dipinjam
+        {totalPages > 1 && (
+          <> · Halaman <strong>{page}</strong> dari <strong>{totalPages}</strong></>
+        )}
       </p>
     </>
   );

@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useFormState, useFormStatus } from "react-dom";
+import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { CoverUploader } from "@/components/CoverUploader";
 import { createBookAction, editBookAction, type BookFormState } from "@/app/admin/books/new/actions";
@@ -48,6 +49,36 @@ export function AdminBookForm({ initialData }: { initialData?: any }) {
     }
     formAction(formData);
   };
+
+  if (state?.success) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-6 rounded-[3rem] bg-white p-12 text-center shadow-sm">
+        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-green-100 text-green-600">
+          <Icon name="check_circle" className="text-6xl" />
+        </div>
+        <div>
+          <h2 className="font-headline text-3xl font-extrabold text-slate-900">Selesai!</h2>
+          <p className="mt-3 text-lg font-medium text-slate-600">{state.success}</p>
+        </div>
+        <div className="mt-6 flex flex-wrap justify-center gap-4">
+          <Link
+            href="/admin/catalog"
+            className="rounded-full bg-surface-container px-8 py-3.5 font-bold text-primary transition hover:bg-surface-container-high"
+          >
+            Lihat Katalog
+          </Link>
+          {!isEdit && (
+            <button
+              onClick={() => window.location.reload()}
+              className="rounded-full bg-primary px-8 py-3.5 font-bold text-white transition hover:bg-primary/90"
+            >
+              Tambah Buku Lagi
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-8 lg:grid-cols-[220px_1fr]">
@@ -184,7 +215,6 @@ export function AdminBookForm({ initialData }: { initialData?: any }) {
             {state.error}
           </div>
         )}
-        {state.success ? <p className="mt-6 rounded-xl bg-green-100 p-3 text-sm text-green-700">{state.success}</p> : null}
 
         <div className="col-span-full mt-8 flex items-center justify-end gap-3">
           <SubmitButton isEdit={isEdit} />
@@ -198,17 +228,23 @@ function SubmitButton({ isEdit }: { isEdit: boolean }) {
   const { pending } = useFormStatus();
 
   return (
-    <button
-      className="flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-bold text-white shadow-soft transition hover:bg-primary/90 active:scale-95 disabled:opacity-50"
-      disabled={pending}
-      type="submit"
-    >
-      {pending ? (
-        <Icon name="autorenew" className="animate-spin text-lg" />
-      ) : (
-        <Icon name="save" />
+    <>
+      {pending && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/20 backdrop-blur-sm">
+          <div className="flex flex-col items-center justify-center gap-5 rounded-[2.5rem] bg-white p-10 shadow-2xl">
+            <Icon name="autorenew" className="animate-spin text-5xl text-primary" />
+            <p className="font-headline text-lg font-bold text-slate-800">Menyimpan data...</p>
+          </div>
+        </div>
       )}
-      {pending ? "Menyimpan..." : isEdit ? "Perbarui Buku" : "Simpan Buku"}
-    </button>
+      <button
+        className="flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-bold text-white shadow-soft transition hover:bg-primary/90 active:scale-95 disabled:opacity-50"
+        disabled={pending}
+        type="submit"
+      >
+        <Icon name="save" className="text-lg" />
+        {isEdit ? "Perbarui Buku" : "Simpan Buku"}
+      </button>
+    </>
   );
 }

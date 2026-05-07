@@ -19,6 +19,7 @@ type DbBook = {
   author: string;
   category: string | null;
   grade_level: string | null;
+  total_copies: number;
   available_copies: number;
   description: string | null;
   status: "available" | "borrowed" | "archived";
@@ -62,6 +63,7 @@ function mapBook(book: DbBook): Book {
     category: book.category ?? "Umum",
     grade: "Umum",
     copies: book.available_copies,
+    totalCopies: book.total_copies ?? book.available_copies,
     status: book.available_copies > 0 && book.status === "available" ? "available" : book.status === "borrowed" ? "borrowed" : "pending",
     description: book.description ?? "Belum ada deskripsi buku.",
     coverTone: book.id.charCodeAt(0) % 2 === 0 ? "blue" : "warm",
@@ -216,7 +218,7 @@ export async function getBooks() {
 
   const { data, error } = await supabase
     .from("books")
-    .select("id, title, author, category, available_copies, description, status, cover_url, created_at")
+    .select("id, title, author, category, total_copies, available_copies, description, status, cover_url, created_at")
     .order("created_at", { ascending: false })
     .returns<DbBook[]>();
 
@@ -225,6 +227,100 @@ export async function getBooks() {
   }
 
   return data.map(mapBook);
+}
+
+export async function getBooksPaginated(options: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  category?: string;
+  status?: string;
+  minCopies?: number;
+  maxCopies?: number;
+}): Promise<{ books: Book[]; total: number }> {
+  const supabase = createClient();
+  const page = Math.max(1, options.page ?? 1);
+  const limit = options.limit ?? 12;
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  if (!supabase) {
+    let filtered = demoBooks;
+    if (options.search) {
+      const s = options.search.toLowerCase();
+      filtered = filtered.filter(
+        (b) => b.title.toLowerCase().includes(s) || b.author.toLowerCase().includes(s)
+      );
+    }
+    if (options.category) filtered = filtered.filter((b) => b.category === options.category);
+    return { books: filtered.slice(from, from + limit), total: filtered.length };
+  }
+
+  let query = supabase
+    .from("books")
+    .select("id, title, author, category, total_copies, available_copies, description, status, cover_url, created_at", {
+      count: "exact",
+    })
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (options.search?.trim()) {
+    query = query.or(
+      `title.ilike.%${options.search.trim()}%,author.ilike.%${options.search.trim()}%`
+    );
+  }
+  if (options.category?.trim()) {
+    query = query.eq("category", options.category.trim());
+  }
+  if (options.status?.trim()) {
+    query = query.eq("status", options.status.trim());
+  }
+  if (options.minCopies !== undefined) {
+    query = query.gte("total_copies", options.minCopies);
+  }
+  if (options.maxCopies !== undefined) {
+    query = query.lte("total_copies", options.maxCopies);
+  }
+
+  const { data, error, count } = await query;
+
+  if (error || !data) {
+    return { books: demoBooks.slice(from, from + limit), total: demoBooks.length };
+  }
+
+  return { books: (data as DbBook[]).map(mapBook), total: count ?? 0 };
+}
+
+export async function getBookStats(): Promise<{
+  total: number;
+  available: number;
+  borrowed: number;
+  totalCopies: number;
+}> {
+  const supabase = createClient();
+
+  if (!supabase) {
+    return {
+      total: demoBooks.length,
+      available: demoBooks.filter((b) => b.status === "available").length,
+      borrowed: demoBooks.filter((b) => b.status === "borrowed").length,
+      totalCopies: demoBooks.reduce((s, b) => s + b.copies, 0),
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("books")
+    .select("status, total_copies");
+
+  if (error || !data) return { total: 0, available: 0, borrowed: 0, totalCopies: 0 };
+
+  const rows = data as { status: string; total_copies: number }[];
+  return {
+    total: rows.length,
+    available: rows.filter((b) => b.status === "available").length,
+    borrowed: rows.filter((b) => b.status === "borrowed").length,
+    totalCopies: rows.reduce((s, b) => s + (b.total_copies ?? 0), 0),
+  };
 }
 
 export async function getBookById(id: string) {
@@ -236,7 +332,7 @@ export async function getBookById(id: string) {
 
   const { data, error } = await supabase
     .from("books")
-    .select("id, title, author, category, available_copies, description, status, cover_url, created_at")
+    .select("id, title, author, category, total_copies, available_copies, description, status, cover_url, created_at")
     .eq("id", id)
     .single<DbBook>();
 
@@ -333,6 +429,127 @@ export async function getMembers() {
     status: profile.role === "student" ? "Aktif" : "Aktif",
     activeBorrowings: borrowCount.get(profile.id) ?? 0
   })) as Member[];
+}
+
+export async function getMembersPaginated(options: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  role?: string;
+  dateFrom?: string;  // format YYYY-MM-DD
+  dateTo?: string;   // format YYYY-MM-DD
+  adminRole?: "admin" | "librarian";
+}): Promise<{ members: Member[]; total: number }> {
+  const supabase = createClient();
+  const page = Math.max(1, options.page ?? 1);
+  const limit = options.limit ?? 15;
+  const startIdx = (page - 1) * limit;
+  const endIdx = startIdx + limit - 1;
+
+  if (!supabase) {
+    return { members: demoMembers.slice(startIdx, startIdx + limit), total: demoMembers.length };
+  }
+
+  let query = supabase
+    .from("profiles")
+    .select("id, full_name, role, member_code, grade, created_at", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(startIdx, endIdx);
+
+  // Librarian hanya boleh lihat siswa & guru
+  if (options.adminRole === "librarian") {
+    if (options.role && ["student", "teacher"].includes(options.role)) {
+      query = query.eq("role", options.role);
+    } else {
+      query = query.in("role", ["student", "teacher"]);
+    }
+  } else if (options.role) {
+    query = query.eq("role", options.role);
+  }
+
+  if (options.search?.trim()) {
+    query = query.or(
+      `full_name.ilike.%${options.search.trim()}%,member_code.ilike.%${options.search.trim()}%`
+    );
+  }
+
+  // Filter rentang tanggal bergabung
+  if (options.dateFrom) {
+    query = query.gte("created_at", options.dateFrom);
+  }
+  if (options.dateTo) {
+    // Tambah T23:59:59 agar hari terakhir ikut masuk
+    query = query.lte("created_at", `${options.dateTo}T23:59:59`);
+  }
+
+  const { data, error, count } = await query;
+  if (error || !data) return { members: [], total: 0 };
+
+  const memberIds = (data as DbProfile[]).map((p) => p.id);
+
+  const [borrowingData, emailData] = await Promise.all([
+    supabase
+      .from("borrowings")
+      .select("member_id, status")
+      .in("member_id", memberIds)
+      .in("status", ["borrowed", "overdue"]),
+    supabase.rpc("get_member_emails"),
+  ]);
+
+  const borrowCount = new Map<string, number>();
+  borrowingData.data?.forEach((item: any) => {
+    borrowCount.set(item.member_id, (borrowCount.get(item.member_id) ?? 0) + 1);
+  });
+
+  const emailMap = new Map<string, string>();
+  emailData.data?.forEach((row: any) => {
+    emailMap.set(row.id, row.email);
+  });
+
+  const members = (data as DbProfile[]).map((profile) => ({
+    id: profile.id,
+    displayId: profile.member_code ?? profile.id.slice(0, 8).toUpperCase(),
+    name: profile.full_name,
+    joinedDate: profile.created_at
+      ? new Date(profile.created_at).toLocaleDateString("id-ID", {
+          day: "numeric", month: "long", year: "numeric",
+        })
+      : "-",
+    email: emailMap.get(profile.id) ?? "-",
+    role: profile.role,
+    status: "Aktif" as const,
+    activeBorrowings: borrowCount.get(profile.id) ?? 0,
+  })) as Member[];
+
+  return { members, total: count ?? 0 };
+}
+
+export async function getMemberStats(
+  adminRole: "admin" | "librarian"
+): Promise<{ total: number; borrowing: number }> {
+  const supabase = createClient();
+  if (!supabase) {
+    return { total: demoMembers.length, borrowing: 0 };
+  }
+
+  let profileQuery = supabase
+    .from("profiles")
+    .select("id", { count: "exact" });
+  if (adminRole === "librarian") {
+    profileQuery = profileQuery.in("role", ["student", "teacher"]);
+  }
+  const { data: profiles, count } = await profileQuery;
+
+  const memberIds = (profiles as any[])?.map((p) => p.id) ?? [];
+  const { data: borrows } = await supabase
+    .from("borrowings")
+    .select("member_id")
+    .in("member_id", memberIds)
+    .in("status", ["borrowed", "overdue"]);
+
+  const activeBorrowers = new Set((borrows as any[])?.map((b) => b.member_id) ?? []);
+
+  return { total: count ?? 0, borrowing: activeBorrowers.size };
 }
 
 export async function hasUserBorrowedBook(bookId: string): Promise<boolean> {

@@ -6,7 +6,8 @@ export type Book = {
   author: string;
   category: string;
   grade: string;
-  copies: number;
+  copies: number;          // available copies (belum dipinjam)
+  totalCopies?: number;    // total fisik di perpustakaan
   status: BookStatus;
   description: string;
   coverTone: "blue" | "warm";
