@@ -28,7 +28,8 @@ export default async function StudentDashboardPage() {
   ];
 
   const dynamicCategories = Array.from(categoryMap.entries())
-    .sort((a, b) => b[1] - a[1]) // highest count first
+    .sort((a, b) => b[1] - a[1]) // terbanyak dulu
+    .slice(0, 4)                   // ambil 4 teratas saja
     .map(([title, count], index) => ({
       title,
       count: `${count} Judul`,

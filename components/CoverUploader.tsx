@@ -15,6 +15,7 @@ type CoverUploaderProps = {
 async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<Blob> {
   const image = await new Promise<HTMLImageElement>((resolve, reject) => {
     const img = new Image();
+    img.crossOrigin = "anonymous"; // izinkan canvas baca URL Supabase
     img.addEventListener("load", () => resolve(img));
     img.addEventListener("error", (error) => reject(error));
     img.src = imageSrc;
@@ -58,6 +59,8 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<Blob> {
 export function CoverUploader({ initialPreview, onFileProcessed }: CoverUploaderProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(initialPreview || null);
   const [rawImageSrc, setRawImageSrc] = useState<string | null>(null);
+  // Simpan sumber asli — init dari cover yang sudah ada agar bisa di-crop ulang
+  const [originalRawSrc, setOriginalRawSrc] = useState<string | null>(initialPreview || null);
   
   // Crop states
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -77,7 +80,9 @@ export function CoverUploader({ initialPreview, onFileProcessed }: CoverUploader
     if (file) {
       const reader = new FileReader();
       reader.addEventListener("load", () => {
-        setRawImageSrc(reader.result?.toString() || null);
+        const src = reader.result?.toString() || null;
+        setRawImageSrc(src);
+        setOriginalRawSrc(src); // simpan untuk re-crop
       });
       reader.readAsDataURL(file);
     }
@@ -85,6 +90,10 @@ export function CoverUploader({ initialPreview, onFileProcessed }: CoverUploader
 
   const cancelCrop = () => {
     setRawImageSrc(null);
+    // Jika belum ada preview (baru pertama pilih & batal), hapus juga originalRawSrc
+    if (!previewUrl) {
+      setOriginalRawSrc(null);
+    }
     setCrop({ x: 0, y: 0 });
     setZoom(1);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -116,7 +125,7 @@ export function CoverUploader({ initialPreview, onFileProcessed }: CoverUploader
       setPreviewUrl(url);
       onFileProcessed(finaleFile);
       
-      // Tutup modal
+      // Tutup modal crop, tapi SIMPAN originalRawSrc untuk edit crop ulang
       setRawImageSrc(null);
     } catch (err) {
       console.error(err);
@@ -128,6 +137,7 @@ export function CoverUploader({ initialPreview, onFileProcessed }: CoverUploader
 
   const removeImage = () => {
     setPreviewUrl(null);
+    setOriginalRawSrc(null); // hapus sumber asli juga
     onFileProcessed(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
     if (cameraInputRef.current) cameraInputRef.current.value = "";
@@ -137,15 +147,36 @@ export function CoverUploader({ initialPreview, onFileProcessed }: CoverUploader
     <>
       <div className="relative flex aspect-[3/4] w-full flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-outline-variant/30 bg-surface-container-high text-center">
         {previewUrl ? (
-          <div className="group relative h-full w-full">
+        <div className="group relative h-full w-full">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={previewUrl} alt="Cover Preview" className="h-full w-full object-cover" />
             
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition group-hover:opacity-100">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/50 opacity-0 transition group-hover:opacity-100 p-4">
+              {/* Tombol Edit Crop — hanya muncul jika gambar dipilih di sesi ini */}
+              {originalRawSrc && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCrop({ x: 0, y: 0 });
+                    setZoom(1);
+                    setRawImageSrc(originalRawSrc);
+                  }}
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-bold text-slate-800 shadow-xl hover:bg-slate-100"
+                >
+                  <Icon name="crop" className="text-lg" /> Edit Crop
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-xl hover:bg-primary/90"
+              >
+                <Icon name="photo_camera" className="text-lg" /> Ganti Cover
+              </button>
               <button
                 type="button"
                 onClick={removeImage}
-                className="flex items-center gap-2 rounded-full bg-error px-4 py-2 text-sm font-bold text-white shadow-xl hover:bg-red-600"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-error px-4 py-2.5 text-sm font-bold text-white shadow-xl hover:bg-red-600"
               >
                 <Icon name="delete" className="text-lg" /> Hapus
               </button>
